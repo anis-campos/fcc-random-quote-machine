@@ -163,6 +163,10 @@ class App extends React.Component {
     }
   }
 
+  componentDidMount(){
+    this.getQuote()
+  }
+
   render() {
     const { author: name, quote: text } = this.state;
     const quote = encodeURI(`"${text}" - ${name}`);
