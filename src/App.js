@@ -120,6 +120,9 @@ class Quote extends React.Component {
   }
 }
 
+
+const API_URL = 'https://gist.githubusercontent.com/camperbot/5a022b72e96c4c9585c32bf6a75f62d9/raw/e3c6895ce42069f0ee7e991229064f167fe8ccdc/quotes.json'
+
 class App extends React.Component {
 
   constructor(props) {
@@ -129,7 +132,9 @@ class App extends React.Component {
       quote: "This is a really inspiring citation",
       theme: {
         color: this.getRandomColor()
-      }
+      },
+      index : 0,
+      quotes: []
     }
   }
 
@@ -148,27 +153,41 @@ class App extends React.Component {
     })
   }
 
-  getQuote = async () => {
+  getQuote = (quotes,index)=>{
+    let newIndex = 0;
+    debugger
+    do{
+      newIndex = Math.round(Math.random()*quotes.length)
+    }while(newIndex===index)
+
+    this.setState({
+      index:newIndex
+    })
+
+  }
+  
+  getQuotes = async () => {
     try {
-      const response = await fetch("/api/1.0/?method=getQuote&format=json&lang=en");
+      const response = await fetch(API_URL);
       const data = await response.json();
       console.log(data)
-      const { 'quoteText': quote, 'quoteAuthor': author } = data
       this.changeColor()
       this.setState({
-        quote, author
+        quotes:data.quotes
       })
     } catch (error) {
       console.error(error)
     }
   }
 
-  componentDidMount(){
-    this.getQuote()
+  componentDidMount() {
+    this.getQuotes()
   }
 
   render() {
-    const { author: name, quote: text } = this.state;
+    const {quotes,index} = this.state;
+    const q = quotes[index] || {}
+    const { author: name, quote: text } = q;
     const quote = encodeURI(`"${text}" - ${name}`);
     return (
       <ThemeProvider theme={this.state.theme}>
@@ -176,7 +195,7 @@ class App extends React.Component {
           <Card id="quote-box">
             <Quote id="text" text={text} />
             <QuoteSource id="author" name={name} />
-            <NextQuoteButton id="new-quote" right={true} onClick={this.getQuote}> Next Quote </NextQuoteButton>
+            <NextQuoteButton id="new-quote" right={true} onClick={this.getQuote.bind(this,quotes,index)}> Next Quote </NextQuoteButton>
             <TweetQuoteButton id="tweet-quote" onClick={this.tweet} target="_blank" href={`https://twitter.com/intent/tweet?text=${quote}&hashtags=quote`}><FontAwesomeIcon icon={['fab', 'twitter']} /></TweetQuoteButton>
           </Card>
         </Container>
